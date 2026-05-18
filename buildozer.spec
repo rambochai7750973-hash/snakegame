@@ -18,7 +18,7 @@ fullscreen = 0
 android.api = 34
 android.minapi = 21
 android.sdk = 34
-android.ndk = 25.2.9519653
+android.ndk = 28c
 android.accept_sdk_license = True
 android.archs = arm64-v8a
 android.add_src =
@@ -53,7 +53,7 @@ android.preserve_libc = False
 
 android.intent_service =
 
-p4a.branch = develop
+p4a.branch = master
 
 p4a.source_dir =
 
