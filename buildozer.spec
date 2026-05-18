@@ -53,7 +53,7 @@ android.preserve_libc = False
 
 android.intent_service =
 
-p4a.branch = master
+p4a.branch = v2024.01.21
 
 p4a.source_dir =
 
