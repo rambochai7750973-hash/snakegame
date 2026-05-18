@@ -37,8 +37,6 @@ android.keystore =
 
 android.install_location = auto
 
-android.allow_backup = True
-
 android.wakelock = False
 
 android.library_references =
