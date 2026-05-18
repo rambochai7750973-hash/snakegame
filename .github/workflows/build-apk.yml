@@ -34,10 +34,24 @@ jobs:
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Pre-accept Android SDK License
+        run: |
+          mkdir -p "$HOME/.android"
+          touch "$HOME/.android/repositories.cfg"
+          # Pre-accept Android SDK licenses (hash values known for common licenses)
+          for dir in "$HOME/.buildozer/android/platform/android-sdk" "/usr/lib/android-sdk" "$HOME/Android/Sdk"; do
+            mkdir -p "$dir/licenses"
+            echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$dir/licenses/android-sdk-license" 2>/dev/null || true
+            echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > "$dir/licenses/android-sdk-preview-license" 2>/dev/null || true
+            echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$dir/licenses/android-sdk-arm-dbt-license" 2>/dev/null || true
+          done
+        env:
+          ANDROID_HOME: $HOME/.buildozer/android/platform/android-sdk
+
       - name: Build APK with Buildozer
         run: |
           rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
-          buildozer android debug
+          yes | buildozer android debug
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
