@@ -81,7 +81,7 @@ p4a.sdl2_mixer_pre_compiled = False
 
 p4a.sdl2_net_pre_compiled = False
 
-p4a.sdl2_sound_pre_compiled = False
+p4a.hook = ./hook.py
 
 p4a.android_repository_tags =
 
