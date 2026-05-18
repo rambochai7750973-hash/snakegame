@@ -21,13 +21,7 @@ android.sdk = 34
 android.ndk = 25c
 android.accept_sdk_license = True
 android.archs = arm64-v8a
-android.add_src =
-
 android.permissions = VIBRATE
-
-android.manifest.intent_filters =
-
-android.add_jars =
 
 android.gradle_dependencies =
 
@@ -58,8 +52,6 @@ p4a.branch = v2024.01.21
 p4a.source_dir =
 
 p4a.local_recipes =
-
-p4a.hook =
 
 p4a.bootstrap = sdl2
 
