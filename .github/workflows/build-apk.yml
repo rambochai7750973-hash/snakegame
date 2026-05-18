@@ -36,6 +36,7 @@ jobs:
 
       - name: Build APK with Buildozer
         run: |
+          rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
           buildozer android debug
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
