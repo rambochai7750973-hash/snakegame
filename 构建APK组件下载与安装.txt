@@ -1,0 +1,136 @@
+============================================
+  贪吃蛇 APK 构建 - 组件手动下载与安装指南
+============================================
+
+本文件包含构建 APK 所需所有组件的下载地址
+以及安装到 WSL Ubuntu 的具体命令。
+
+按顺序执行即可。
+
+============================================
+一、准备工作
+============================================
+
+在 Windows 上打开 WSL 终端：
+  wsl -d Ubuntu
+
+更新包列表：
+  sudo apt-get update
+  sudo apt-get install -y wget curl unzip zip
+
+============================================
+二、安装 Python3-pip
+============================================
+
+  sudo apt-get install -y python3-pip python3-venv
+
+============================================
+三、安装 JDK 11
+============================================
+
+下载地址（在 Windows 浏览器中打开）：
+  https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%2B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz
+
+安装命令：
+  # 复制到 WSL 并解压
+  cp /mnt/c/Users/工会电脑/Downloads/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz /tmp/
+  sudo tar xzf /tmp/OpenJDK11U-*.tar.gz -C /usr/lib/jvm/
+  
+  # 设置默认 Java
+  sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-11.0.26+4/bin/java 1
+  sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/jdk-11.0.26+4/bin/javac 1
+  
+  # 验证
+  java -version
+
+============================================
+四、安装 Android SDK Command-Line Tools
+============================================
+
+下载地址：
+  https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+
+安装命令：
+  cp /mnt/c/Users/工会电脑/Downloads/commandlinetools-linux-*.zip /tmp/
+  mkdir -p ~/.buildozer/android/platform/android-sdk
+  unzip /tmp/commandlinetools-linux-*.zip -d /tmp/cmdline-tools
+  mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+  mv /tmp/cmdline-tools/cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+  rm -rf /tmp/cmdline-tools
+
+============================================
+五、安装 Android NDK r25c
+============================================
+
+下载地址：
+  https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
+
+安装命令：
+  cp /mnt/c/Users/工会电脑/Downloads/android-ndk-r25c-linux.zip /tmp/
+  mkdir -p ~/.buildozer/android/platform
+  unzip /tmp/android-ndk-r25c-linux.zip -d ~/.buildozer/android/platform/
+  # 确认目录名
+  ls ~/.buildozer/android/platform/
+
+============================================
+六、安装 Android SDK Platform 34
+============================================
+
+下载地址：
+  https://dl.google.com/android/repository/platform-34_r03.zip
+
+安装命令：
+  cp /mnt/c/Users/工会电脑/Downloads/platform-34_r03.zip /tmp/
+  mkdir -p ~/.buildozer/android/platform/android-sdk/platforms/
+  unzip /tmp/platform-34_r03.zip -d ~/.buildozer/android/platform/android-sdk/platforms/
+  mv ~/.buildozer/android/platform/android-sdk/platforms/android-34_r03 ~/.buildozer/android/platform/android-sdk/platforms/android-34 2>/dev/null
+
+============================================
+七、安装 Android Build-Tools 34.0.0
+============================================
+
+下载地址：
+  https://dl.google.com/android/repository/build-tools_r34-linux.zip
+
+安装命令：
+  cp /mnt/c/Users/工会电脑/Downloads/build-tools_r34-linux.zip /tmp/
+  mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/
+  unzip /tmp/build-tools_r34-linux.zip -d ~/.buildozer/android/platform/android-sdk/build-tools/34.0.0/
+
+============================================
+八、安装 Buildozer 并编译 APK
+============================================
+
+  # 安装 buildozer
+  pip3 install --user buildozer cython
+  
+  # 设置 PATH
+  export PATH=$HOME/.local/bin:$PATH
+  export JAVA_HOME=/usr/lib/jvm/jdk-11.0.26+4
+  export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+  export ANDROID_NDK_HOME=$HOME/.buildozer/android/platform/android-ndk-r25c
+  
+  # 进入项目目录
+  cd ~/snakegame
+  
+  # 编译 APK
+  buildozer android debug
+  
+  # APK 文件在 bin/ 目录
+  ls -lh bin/
+
+============================================
+注意事项
+============================================
+
+1. 下载链接中的版本号可能会更新，如果 404 请访问以下镜像查找最新版：
+   - JDK: https://adoptium.net/temurin/releases/?version=11
+   - Android 工具: https://developer.android.com/studio#command-line-tools
+
+2. 所有文件下载后放在 C:\Users\工会电脑\Downloads\ 目录，
+    然后在 WSL 中用 cp 命令复制到 /tmp/ 进行安装。
+
+3. 如果 buildozer 仍然提示下载组件，说明路径不正确，
+    可能需要调整 ~/.buildozer/android/platform/ 下的目录结构。
+
+============================================

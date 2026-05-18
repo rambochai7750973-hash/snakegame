@@ -1,0 +1,34 @@
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  build-essential default-jre-headless dpkg-dev fakeroot g++ g++-11
+  javascript-common libalgorithm-diff-perl libalgorithm-diff-xs-perl
+  libalgorithm-merge-perl libexpat1 libexpat1-dev libfakeroot libjs-jquery
+  libjs-sphinxdoc libjs-underscore libpython3-dev libpython3-stdlib
+  libpython3.10 libpython3.10-dev libpython3.10-minimal libpython3.10-stdlib
+  libstdc++-11-dev lto-disabled-list openjdk-11-jdk-headless python3
+  python3-dev python3-distutils python3-lib2to3 python3-minimal
+  python3-pkg-resources python3-setuptools python3-wheel python3.10
+  python3.10-dev python3.10-minimal
+Suggested packages:
+  default-jre debian-keyring g++-multilib g++-11-multilib gcc-11-doc apache2
+  | lighttpd | httpd libstdc++-11-doc openjdk-11-demo openjdk-11-source
+  python3-doc python3-tk python3-venv python-setuptools-doc python3.10-venv
+  python3.10-doc binfmt-support
+The following NEW packages will be installed:
+  build-essential default-jdk-headless default-jre-headless dpkg-dev fakeroot
+  g++ g++-11 javascript-common libalgorithm-diff-perl
+  libalgorithm-diff-xs-perl libalgorithm-merge-perl libexpat1-dev libfakeroot
+  libjs-jquery libjs-sphinxdoc libjs-underscore libpython3-dev
+  libpython3.10-dev libstdc++-11-dev lto-disabled-list openjdk-11-jdk-headless
+  python3-dev python3-distutils python3-lib2to3 python3-pip python3-setuptools
+  python3-wheel python3.10-dev
+The following packages will be upgraded:
+  libexpat1 libpython3-stdlib libpython3.10 libpython3.10-minimal
+  libpython3.10-stdlib python3 python3-minimal python3-pkg-resources
+  python3.10 python3.10-minimal
+10 upgraded, 28 newly installed, 0 to remove and 200 not upgraded.
+Need to get 75.0 MB/104 MB of archives.
+After this operation, 168 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 openjdk-11-jdk-headless amd64 11.0.30+7-1ubuntu1~22.04 [73.7 MB]
