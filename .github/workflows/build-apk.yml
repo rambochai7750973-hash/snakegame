@@ -42,8 +42,9 @@ jobs:
 
       - name: Build APK
         run: |
-          yes | buildozer android debug 2>&1 | tee build_output.log
-          rc=${PIPESTATUS[1]}; if [ $rc -ne 0 ]; then exit $rc; fi
+          set +o pipefail
+          yes 2>/dev/null | buildozer android debug 2>&1 | tee build_output.log
+          exit ${PIPESTATUS[1]}
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         shell: bash
