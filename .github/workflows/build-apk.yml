@@ -27,16 +27,50 @@ jobs:
             libncurses5-dev libncursesw5-dev libtinfo5 \
             cmake libffi-dev libssl-dev python3-pip
 
+      - name: Find Java home
+        run: |
+          update-java-alternatives -l 2>/dev/null || true
+          java -XshowSettings:properties -version 2>&1 | grep 'java.home'
+          ls -la /usr/lib/jvm/ 2>/dev/null || true
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+
       - name: Install Buildozer
         run: |
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build APK
+      - name: First build (download SDK/NDK, build recipes, will fail at packaging)
+        continue-on-error: true
         run: |
-          yes | buildozer android debug
+          yes | buildozer android debug 2>&1 | tee buildozer-first.log
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+      - name: Upload first build log (even if failed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-first-log
+          path: buildozer-first.log
+        if: always()
+
+      - name: Patch p4a template (backup fix for project.properties)
+        run: |
+          python3 fix_build.py
+        continue-on-error: true
+
+      - name: Clean dist and rebuild APK with hook fix
+        run: |
+          rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
+          yes | buildozer android debug 2>&1 | tee buildozer-second.log
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+      - name: Upload second build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-second-log
+          path: buildozer-second.log
+        if: always()
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
