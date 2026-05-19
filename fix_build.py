@@ -10,6 +10,16 @@ def fix_build_py(path):
         "        target = fileh.read().strip()\n"
         "    android_api = target.split('-')[1]"
     )
+
+    # Debug: check if the exact string is found
+    if old not in content:
+        # Try finding the lines
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            if 'fileh.read().strip()' in line:
+                print(f"DEBUG: Found 'fileh.read().strip()' at line {i+1}: repr={repr(line)}")
+                if i + 1 < len(lines):
+                    print(f"DEBUG: Next line {i+2}: repr={repr(lines[i+1])}")
     new = (
         "        for _l in fileh:\n"
         "            if _l.startswith('target='):\n"
@@ -69,17 +79,43 @@ def fix_project_properties(path):
     return True
 
 
+def clear_pycache(dir_path):
+    """Remove __pycache__ directories and .pyc files to invalidate bytecode cache."""
+    for root, dirs, files in os.walk(dir_path):
+        for d in dirs:
+            if d == '__pycache__':
+                cache_dir = os.path.join(root, d)
+                for f in os.listdir(cache_dir):
+                    os.remove(os.path.join(cache_dir, f))
+                os.rmdir(cache_dir)
+                print(f"Removed __pycache__: {cache_dir}")
+        for f in files:
+            if f.endswith('.pyc'):
+                os.remove(os.path.join(root, f))
+                print(f"Removed .pyc: {os.path.join(root, f)}")
+
+
 if __name__ == '__main__':
     workspace = os.environ.get('GITHUB_WORKSPACE', os.getcwd())
 
+    # Clear any Python bytecode cache in p4a directory first
+    p4a_dir = os.path.join(
+        workspace, '.buildozer', 'android', 'platform',
+        'python-for-android'
+    )
+    if os.path.exists(p4a_dir):
+        clear_pycache(p4a_dir)
+
     # Fix template
     template = os.path.join(
-        workspace, '.buildozer', 'android', 'platform',
-        'python-for-android', 'pythonforandroid', 'bootstraps',
+        p4a_dir, 'pythonforandroid', 'bootstraps',
         'common', 'build', 'build.py'
     )
     if os.path.exists(template):
         fix_build_py(template)
+        # Also clear cache in the build directory
+        build_dir = os.path.dirname(template)
+        clear_pycache(build_dir)
 
     # Fix dist files
     dist_dir = os.path.join(
