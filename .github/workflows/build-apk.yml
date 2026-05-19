@@ -34,7 +34,37 @@ jobs:
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build APK with Buildozer
+      - name: First build (download p4a, build native libs, will fail at packaging)
+        continue-on-error: true
+        run: |
+          yes | buildozer android debug
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+      - name: Patch p4a build.py template for new Android SDK
+        run: |
+          P4A_DIR="$GITHUB_WORKSPACE/.buildozer/android/platform/python-for-android"
+          BUILD_PY="$P4A_DIR/pythonforandroid/bootstraps/common/build/build.py"
+          if [ -f "$BUILD_PY" ]; then
+            sed -i 's/target = fileh.read().strip()/for _l in fileh:\n            if _l.startswith("target="):\n                target = _l.strip().split("=")[1]\n                break/' "$BUILD_PY"
+            echo "Patched p4a build.py template"
+          else
+            echo "ERROR: build.py template not found at $BUILD_PY"
+            ls -la "$P4A_DIR/pythonforandroid/bootstraps/common/build/" 2>/dev/null || echo "Directory not found"
+            exit 1
+          fi
+
+      - name: Patch dist build.py
+        run: |
+          DIST_BUILD_PY="$GITHUB_WORKSPACE/.buildozer/android/platform/build-arm64-v8a/dists/snakegame/build.py"
+          if [ -f "$DIST_BUILD_PY" ]; then
+            sed -i 's/target = fileh.read().strip()/for _l in fileh:\n            if _l.startswith("target="):\n                target = _l.strip().split("=")[1]\n                break/' "$DIST_BUILD_PY"
+            echo "Patched dist build.py"
+          else
+            echo "Dist build.py not found (will be regenerated)"
+          fi
+
+      - name: Clean dist and rebuild APK
         run: |
           rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
           yes | buildozer android debug
