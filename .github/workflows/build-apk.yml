@@ -34,67 +34,16 @@ jobs:
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: First build (download p4a, build native libs, will fail at packaging)
+      - name: First build (downloads p4a, builds recipes, will fail at packaging)
         continue-on-error: true
         run: |
           yes | buildozer android debug
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
-      - name: Patch p4a build.py template for new Android SDK
+      - name: Patch build.py template for multi-line project.properties
         run: |
-          P4A_DIR="$GITHUB_WORKSPACE/.buildozer/android/platform/python-for-android"
-          BUILD_PY="$P4A_DIR/pythonforandroid/bootstraps/common/build/build.py"
-          if [ -f "$BUILD_PY" ]; then
-            python3 -c "
-import re
-with open('$BUILD_PY', 'r') as f:
-    content = f.read()
-# Fix the project.properties parsing to handle multi-line files
-old = '''with open('project.properties', 'r') as fileh:
-        target = fileh.read().strip()
-    android_api = target.split('-')[1]'''
-new = '''with open('project.properties', 'r') as fileh:
-        for _l in fileh:
-            if _l.startswith('target='):
-                target = _l.strip().split('=')[1].split('-')[1]
-                break
-    android_api = target'''
-content = content.replace(old, new)
-with open('$BUILD_PY', 'w') as f:
-    f.write(content)
-print('Patched p4a build.py template')
-"
-          else
-            echo "ERROR: build.py template not found at $BUILD_PY"
-            exit 1
-          fi
-
-      - name: Patch dist build.py
-        run: |
-          DIST_BUILD_PY="$GITHUB_WORKSPACE/.buildozer/android/platform/build-arm64-v8a/dists/snakegame/build.py"
-          if [ -f "$DIST_BUILD_PY" ]; then
-            python3 -c "
-import re
-with open('$DIST_BUILD_PY', 'r') as f:
-    content = f.read()
-old = '''with open('project.properties', 'r') as fileh:
-        target = fileh.read().strip()
-    android_api = target.split('-')[1]'''
-new = '''with open('project.properties', 'r') as fileh:
-        for _l in fileh:
-            if _l.startswith('target='):
-                target = _l.strip().split('=')[1].split('-')[1]
-                break
-    android_api = target'''
-content = content.replace(old, new)
-with open('$DIST_BUILD_PY', 'w') as f:
-    f.write(content)
-print('Patched dist build.py')
-"
-          else
-            echo "Dist build.py not found (will be regenerated)"
-          fi
+          python3 fix_build.py
 
       - name: Clean dist and rebuild APK
         run: |

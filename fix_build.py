@@ -1,0 +1,95 @@
+import os
+import sys
+
+def fix_build_py(path):
+    """Fix project.properties parsing in build.py to handle multi-line files."""
+    with open(path, 'r') as f:
+        content = f.read()
+
+    old = (
+        "        target = fileh.read().strip()\n"
+        "    android_api = target.split('-')[1]"
+    )
+    new = (
+        "        for _l in fileh:\n"
+        "            if _l.startswith('target='):\n"
+        "                target = _l.strip().split('=')[1].split('-')[1]\n"
+        "                break\n"
+        "    android_api = target"
+    )
+
+    if old in content:
+        content = content.replace(old, new)
+        with open(path, 'w') as f:
+            f.write(content)
+        print(f"Fixed: {path}")
+        return True
+    else:
+        # Try with different indentation
+        for indent in ['    ', '\t']:
+            old2 = (
+                f"{indent}    target = fileh.read().strip()\n"
+                f"{indent}android_api = target.split('-')[1]"
+            )
+            if old2 in content:
+                new2 = (
+                    f"{indent}    for _l in fileh:\n"
+                    f"{indent}        if _l.startswith('target='):\n"
+                    f"{indent}            target = _l.strip().split('=')[1].split('-')[1]\n"
+                    f"{indent}            break\n"
+                    f"{indent}android_api = target"
+                )
+                content = content.replace(old2, new2)
+                with open(path, 'w') as f:
+                    f.write(content)
+                print(f"Fixed: {path}")
+                return True
+        print(f"ERROR: Could not find target code in {path}")
+        return False
+
+
+def fix_project_properties(path):
+    """Remove extra lines from project.properties, keep only target line."""
+    if not os.path.exists(path):
+        print(f"project.properties not found at {path}")
+        return False
+
+    with open(path, 'r') as f:
+        lines = f.readlines()
+
+    # Keep only the target line
+    target_lines = [l for l in lines if l.startswith('target=')]
+    if not target_lines:
+        print(f"ERROR: No target= line found in {path}")
+        return False
+
+    with open(path, 'w') as f:
+        f.write(target_lines[0].strip() + '\n')
+    print(f"Fixed project.properties: {path}")
+    return True
+
+
+if __name__ == '__main__':
+    workspace = os.environ.get('GITHUB_WORKSPACE', os.getcwd())
+
+    # Fix template
+    template = os.path.join(
+        workspace, '.buildozer', 'android', 'platform',
+        'python-for-android', 'pythonforandroid', 'bootstraps',
+        'common', 'build', 'build.py'
+    )
+    if os.path.exists(template):
+        fix_build_py(template)
+
+    # Fix dist files
+    dist_dir = os.path.join(
+        workspace, '.buildozer', 'android', 'platform',
+        'build-arm64-v8a', 'dists', 'snakegame'
+    )
+    dist_build_py = os.path.join(dist_dir, 'build.py')
+    dist_props = os.path.join(dist_dir, 'project.properties')
+
+    if os.path.exists(dist_build_py):
+        fix_build_py(dist_build_py)
+    if os.path.exists(dist_props):
+        fix_project_properties(dist_props)
