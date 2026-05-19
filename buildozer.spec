@@ -23,7 +23,7 @@ android.accept_sdk_license = True
 android.archs = arm64-v8a
 android.permissions = VIBRATE
 
-android.gradle_dependencies =
+android.gradle_dependencies = androidx.legacy:legacy-support-v4:1.0.0
 
 android.allow_backup = True
 
