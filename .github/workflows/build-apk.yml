@@ -32,25 +32,32 @@ jobs:
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Download and patch p4a BEFORE buildozer uses it
+      - name: Pre-download p4a to buildozer's expected location and patch
         run: |
+          P4A_DIR=".buildozer/android/platform/python-for-android"
+          mkdir -p "$P4A_DIR"
           git clone --depth=1 --branch=v2024.01.21 \
-            https://github.com/kivy/python-for-android.git p4a_local
-          python3 patch_p4a.py p4a_local
-          sed -i 's|^p4a.source_dir =$|p4a.source_dir = ./p4a_local|' buildozer.spec
+            https://github.com/kivy/python-for-android.git "$P4A_DIR"
+          python3 patch_p4a.py "$P4A_DIR"
 
       - name: Build APK
         run: |
-          yes | buildozer android debug
+          set -o pipefail
+          yes | buildozer android debug 2>&1 | tee build_output.log
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+        shell: bash
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build_output.log
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: snakegame-apk
-          path: |
-            bin/*.apk
-            *.apk
-            **/*.apk
+          path: bin/*.apk
