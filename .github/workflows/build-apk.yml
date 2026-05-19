@@ -32,35 +32,55 @@ jobs:
           pip install --user buildozer cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build APK (first pass downloads SDK/NDK, hook.py fixes project.properties)
-        continue-on-error: true
+      - name: Download and patch p4a BEFORE buildozer uses it
         run: |
-          yes | buildozer android debug 2>&1
+          git clone --depth=1 --branch=v2024.01.21 \
+            https://github.com/kivy/python-for-android.git p4a_local
+          # Patch the build.py template to handle multi-line project.properties
+          python3 -c "
+f = 'p4a_local/pythonforandroid/bootstraps/common/build/build.py'
+with open(f) as fh:
+    c = fh.read()
+old = '''    with open('project.properties', 'r') as fileh:
+        target = fileh.read().strip()
+    android_api = target.split('-')[1]'''
+new = '''    with open('project.properties', 'r') as fileh:
+        for _l in fileh:
+            if _l.startswith('target='):
+                target = _l.strip().split('=')[1].split('-')[1]
+                break
+        else:
+            raise ValueError('No target= line in project.properties')
+    android_api = target'''
+if old in c:
+    c = c.replace(old, new)
+    with open(f, 'w') as fh:
+        fh.write(c)
+    print('OK: Template patched')
+else:
+    print('ERROR: old code not found')
+    exit(1)
+"
+          # Tell buildozer to use this local p4a
+          sed -i 's|^p4a.source_dir =$|p4a.source_dir = ./p4a_local|' buildozer.spec
+          echo "Using local p4a: $(pwd)/p4a_local"
+
+      - name: Build APK
+        run: |
+          yes | buildozer android debug
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
-      - name: Patch p4a template (backup fix)
+      - name: Find APK
         run: |
-          python3 fix_build.py
-        continue-on-error: true
-
-      - name: Clean build cache and rebuild
-        run: |
-          rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
-          yes | buildozer android debug 2>&1
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-
-      - name: Find APK files
-        run: |
-          echo "--- Looking for APK files ---"
-          ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
-          find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
-          echo "--- Checking buildozer output ---"
-          ls -la .buildozer/ 2>/dev/null || echo "No .buildozer directory"
+          echo "=== bin/ contents ==="
+          ls -la bin/ 2>/dev/null || echo "(empty)"
+          echo "=== any .apk files ==="
+          find "$PWD" -name "*.apk" -type f 2>/dev/null || echo "(none)"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: snakegame-apk
           path: |
